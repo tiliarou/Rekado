@@ -1,89 +1,27 @@
 package com.pavelrekun.rekado.services.payloads
 
-import android.os.Environment
 import com.pavelrekun.rekado.data.Payload
-import io.paperdb.Paper
-import java.io.File
-
+import com.pavelrekun.rekado.services.utils.MemoryUtils.getLocation
+import com.pavelrekun.rekado.services.utils.PreferencesUtils
 
 object PayloadHelper {
 
-    val FOLDER_PATH = "${Environment.getExternalStorageDirectory()}/Rekado/"
+    val BUNDLED_PAYLOADS = listOf("hekate.bin", "sx_loader.bin", "fusee_primary.bin")
 
-    const val BUNDLED_PAYLOAD_SX = "sx_loader.bin"
-    const val BUNDLED_PAYLOAD_REINX = "ReiNX.bin"
-    const val BUNDLED_PAYLOAD_HEKATE = "hekate.bin"
+    fun getAllPayloads() = (PreferencesUtils.getCurrentSchema().payloads + getExternalPayloads()).toMutableList()
 
-    private const val CHOSEN_PAYLOAD = "CHOSEN_PAYLOAD"
+    fun getTitles() = getAllPayloads().map { it.title }
 
-    fun init() {
-        val folderFile = File(FOLDER_PATH)
-        if (!folderFile.exists()) folderFile.mkdirs()
-    }
+    fun deletePayloads() = getAllFiles().map { if (!isBundled(it.name)) it.delete() }
 
-    fun getAll(): MutableList<Payload> {
-        val payloads: MutableList<Payload> = ArrayList()
+    fun find(title: String) = getAllPayloads().find { it.title == title } as Payload
 
-        File(FOLDER_PATH).listFiles() ?: return mutableListOf()
+    fun isBundled(title: String) = BUNDLED_PAYLOADS.contains(title)
 
-        File(FOLDER_PATH).listFiles().forEach {
-            if (it.path.contains("bin")) {
-                payloads.add(Payload(getName(it.path), it.path))
-            }
-        }
+    private fun getAllFiles() = getLocation().listFiles()!!.filter { it != null && it.extension == "bin" }.toMutableList()
 
-        return payloads
-    }
+    private fun getExternalPayloads() = getAllFiles()
+            .filter { !BUNDLED_PAYLOADS.contains(it.name) }
+            .map { Payload(title = it.name) }
 
-    fun clearFolderWithoutBundled() {
-        File(FOLDER_PATH).listFiles().forEach {
-            if (it.name != BUNDLED_PAYLOAD_SX || it.name != BUNDLED_PAYLOAD_REINX || it.name != BUNDLED_PAYLOAD_HEKATE) {
-                it.delete()
-            }
-        }
-    }
-
-    fun clearBundled() {
-        File(FOLDER_PATH).listFiles().forEach {
-            if (it.name == BUNDLED_PAYLOAD_SX || it.name == BUNDLED_PAYLOAD_REINX || it.name == BUNDLED_PAYLOAD_HEKATE) {
-                it.delete()
-            }
-        }
-    }
-
-    fun getNames(): MutableList<String> {
-        val payloads: MutableList<String> = ArrayList()
-
-        for (payload in getAll()) {
-            payloads.add(payload.name)
-        }
-
-        return payloads
-    }
-
-    fun getName(path: String): String {
-        return File(path).name
-    }
-
-    fun getPath(name: String): String {
-        return "$FOLDER_PATH/$name"
-    }
-
-    fun find(name: String): Payload? {
-        for (payload in getAll()) {
-            if (payload.name == name) {
-                return payload
-            }
-        }
-
-        return null
-    }
-
-    fun putChosen(payload: Payload) {
-        Paper.book().write(CHOSEN_PAYLOAD, payload)
-    }
-
-    fun getChosen(): Payload {
-        return Paper.book().read(CHOSEN_PAYLOAD)
-    }
 }

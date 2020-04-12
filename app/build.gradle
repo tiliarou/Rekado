@@ -1,23 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
+apply plugin: "com.github.ben-manes.versions"
 
 android {
     compileSdkVersion currentSDKVersion
+    ndkVersion NDKVersion
 
     defaultConfig {
         applicationId "com.pavelrekun.rekado"
         minSdkVersion minimumSDKVersion
         targetSdkVersion currentSDKVersion
-        versionCode 32
-        versionName "2.5.2"
+        versionCode 70
+        versionName "4.0"
 
-        externalNativeBuild {
-            cmake {
-                cppFlags "-std=c++11"
-                arguments "-DANDROID_STL=c++_shared"
-            }
-        }
+        archivesBaseName = "[$versionName] Rekado [${versionCode}]"
     }
 
     buildTypes {
@@ -32,9 +28,8 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    androidExtensions {
-        experimental = true
-        defaultCacheImplementation = "NONE"
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 
     externalNativeBuild {
@@ -47,28 +42,49 @@ android {
         abortOnError false
     }
 
-    android.applicationVariants.all { variant ->
-        variant.outputs.all { output ->
-            outputFileName = "[${versionName}] Rekado [${versionCode}].apk"
-        }
+    aaptOptions {
+        noCompress 'bin'
     }
+
+    viewBinding {
+        enabled = true
+    }
+
 }
 
 dependencies {
+
+    // Local
+    implementation(name: 'penza', ext: 'aar')
+
+    // Google: AndroidX
+    implementation "androidx.recyclerview:recyclerview:$androidXRecyclerViewVersion"
+    implementation "androidx.browser:browser:$androidXBrowserVersion"
+    implementation "androidx.preference:preference:$androidXPreferencesVersion"
+    implementation "androidx.constraintlayout:constraintlayout:$androidXConstraintLayoutVersion"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$androidXLifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$androidXLifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$androidXLifecycleVersion"
+    implementation "androidx.navigation:navigation-fragment-ktx:$androixXNavigationVersion"
+    implementation "androidx.navigation:navigation-ui-ktx:$androixXNavigationVersion"
+
+    // Google: AndroidX KTX
+    implementation "androidx.core:core-ktx:$androidXCoreKTX"
+
+    // Google: Design
     implementation "com.google.android.material:material:$materialComponentsVersion"
-    implementation "androidx.recyclerview:recyclerview:$androidXOtherVersion"
-    implementation "androidx.browser:browser:$androidXOtherVersion"
-    implementation "androidx.preference:preference:$androidXOtherVersion"
+    implementation "com.google.android:flexbox:$flexBoxLayoutVersion"
 
     // Tools
-    implementation "io.paperdb:paperdb:$paperVersion"
     implementation "org.greenrobot:eventbus:$eventBusVersion"
-    implementation "com.afollestad.material-dialogs:core:$materialDialogsVersion"
-
-    // Own
-    implementation project(":konae")
-    implementation(name: 'rang', ext: 'aar')
+    implementation "com.squareup.okhttp3:okhttp:$okHttpVersion"
+    implementation "ru.gildor.coroutines:kotlin-coroutines-okhttp:$okHttpCoroutinesVersion"
+    implementation "com.journeyapps:zxing-android-embedded:$zxingVersion"
+    implementation "com.google.code.gson:gson:$gsonVersion"
 
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlinVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinCoroutinesVersion"
+    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinCoroutinesVersion"
+
 }

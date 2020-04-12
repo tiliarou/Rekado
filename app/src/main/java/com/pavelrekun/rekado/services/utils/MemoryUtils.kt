@@ -1,41 +1,42 @@
 package com.pavelrekun.rekado.services.utils
 
+import com.pavelrekun.rekado.R
 import com.pavelrekun.rekado.RekadoApplication
-import com.pavelrekun.rekado.services.eventbus.Events
-import com.pavelrekun.rekado.services.payloads.PayloadHelper
+import com.pavelrekun.rekado.services.Events
+import com.pavelrekun.rekado.services.extensions.parseSchema
+import com.pavelrekun.rekado.services.extensions.toFile
 import org.greenrobot.eventbus.EventBus
-import java.io.*
+import java.io.File
+import java.io.InputStream
 
 object MemoryUtils {
 
-    fun copyBundledPayloads() {
-        val assetManager = RekadoApplication.instance.applicationContext.assets
+    private val resources = RekadoApplication.context.resources
 
-        val sxPayloadFile = assetManager.open(PayloadHelper.BUNDLED_PAYLOAD_SX)
-        val reiNXPayloadFile = assetManager.open(PayloadHelper.BUNDLED_PAYLOAD_REINX)
-        val hekatePayloadFile = assetManager.open(PayloadHelper.BUNDLED_PAYLOAD_HEKATE)
+    fun parseBundledSchema() {
+        if (!PreferencesUtils.checkSchemaExists()) {
+            val schema = resources.openRawResource(R.raw.bundled_payloads).parseSchema()
+            PreferencesUtils.saveSchema(schema)
+            copyBundledPayloads()
+        }
+    }
 
-        copyFile(sxPayloadFile, FileOutputStream("${PayloadHelper.FOLDER_PATH}/${PayloadHelper.BUNDLED_PAYLOAD_SX}"))
-        copyFile(reiNXPayloadFile, FileOutputStream("${PayloadHelper.FOLDER_PATH}/${PayloadHelper.BUNDLED_PAYLOAD_REINX}"))
-        copyFile(hekatePayloadFile, FileOutputStream("${PayloadHelper.FOLDER_PATH}/${PayloadHelper.BUNDLED_PAYLOAD_HEKATE}"))
+    fun copyPayload(inputStream: InputStream, file: String) {
+        inputStream.toFile("${getLocation().absolutePath}/$file")
+    }
+
+    fun getLocation(): File {
+        return RekadoApplication.context.getExternalFilesDir(null)
+                ?: RekadoApplication.context.filesDir
+    }
+
+    private fun copyBundledPayloads() {
+        copyPayload(resources.openRawResource(R.raw.fusee_primary), "fusee_primary.bin")
+        copyPayload(resources.openRawResource(R.raw.hekate), "hekate.bin")
+        copyPayload(resources.openRawResource(R.raw.sx_loader), "sx_loader.bin")
 
         EventBus.getDefault().post(Events.UpdatePayloadsListEvent())
     }
 
-    @Throws(IOException::class)
-    private fun copyFile(inputStream: InputStream, outputStream: OutputStream) {
-        inputStream.use { input ->
-            outputStream.use { output ->
-                input.copyTo(output)
-            }
-        }
-    }
 
-    fun removeFile(path: String) {
-        File(path).delete()
-    }
-
-    fun toFile(file: File, path: String): File {
-        return file.copyTo(File(path), true)
-    }
 }

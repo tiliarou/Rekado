@@ -3,16 +3,15 @@ package com.pavelrekun.rekado.services.usb
 import android.hardware.usb.UsbDevice
 import android.hardware.usb.UsbManager
 import android.os.Bundle
-import com.afollestad.materialdialogs.MaterialDialog
+import androidx.appcompat.app.AlertDialog
 import com.pavelrekun.rekado.base.BaseActivity
-import com.pavelrekun.rekado.services.dialogs.Dialogs
-import com.pavelrekun.rekado.services.eventbus.Events
-import com.pavelrekun.rekado.services.logs.LogHelper
-import com.pavelrekun.rekado.services.logs.LogHelper.INFO
+import com.pavelrekun.rekado.services.Events
+import com.pavelrekun.rekado.services.utils.LoginUtils
+import com.pavelrekun.rekado.services.dialogs.DialogsShower
 import com.pavelrekun.rekado.services.payloads.PayloadHelper
 import com.pavelrekun.rekado.services.payloads.PayloadLoader
-import com.pavelrekun.rekado.services.utils.SettingsUtils
-import com.pavelrekun.rekado.services.utils.SwitchUtils
+import com.pavelrekun.rekado.services.utils.PreferencesUtils
+import com.pavelrekun.rekado.services.utils.Utils
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
 import org.greenrobot.eventbus.ThreadMode
@@ -24,7 +23,7 @@ class USBReceiver : BaseActivity() {
 
     private var usbHandler: USBHandler? = null
 
-    private lateinit var payloadChooserDialog: MaterialDialog
+    private lateinit var payloadChooserDialog: AlertDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,25 +31,25 @@ class USBReceiver : BaseActivity() {
         if (intent.action == UsbManager.ACTION_USB_DEVICE_ATTACHED) {
             device = intent.getParcelableExtra(UsbManager.EXTRA_DEVICE)
 
-            LogHelper.log(INFO, "USB device connected: ${device.deviceName}")
+            LoginUtils.info("USB device connected: ${device.deviceName}")
 
-            if (SettingsUtils.checkAutoInjectorEnabled()) {
-                PayloadHelper.putChosen(PayloadHelper.find(SettingsUtils.getAutoInjectorPayload())!!)
+            if (PreferencesUtils.checkAutoInjectorEnabled()) {
+                PreferencesUtils.putChosen(PayloadHelper.find(PreferencesUtils.getAutoInjectorPayload()!!))
                 injectPayload()
             } else {
-                payloadChooserDialog = Dialogs.showPayloadsDialog(this)
+                payloadChooserDialog = DialogsShower.showPayloadsDialog(this)
             }
         }
     }
 
     private fun injectPayload() {
-        if (SwitchUtils.isRCM(device)) {
+        if (Utils.isRCM(device)) {
             usbHandler = PayloadLoader()
         }
 
         usbHandler?.handleDevice(device)
 
-        LogHelper.log(INFO, "Payload loading finished for device: ${device.deviceName}")
+        LoginUtils.info("Payload loading finished for device: ${device.deviceName}")
 
         finishReceiver()
     }
