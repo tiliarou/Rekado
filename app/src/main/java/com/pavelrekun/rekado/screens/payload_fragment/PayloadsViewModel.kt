@@ -3,107 +3,113 @@ package com.pavelrekun.rekado.screens.payload_fragment
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.pavelrekun.rekado.data.Schema
+import com.pavelrekun.rekado.data.Config
 import com.pavelrekun.rekado.services.Constants
-import com.pavelrekun.rekado.services.extensions.parseSchema
-import com.pavelrekun.rekado.services.payloads.PayloadDownloadHelper
+import com.pavelrekun.rekado.services.extensions.parseConfig
+import com.pavelrekun.rekado.services.payloads.PayloadDownloadService
+import com.pavelrekun.rekado.services.payloads.Result
 import com.pavelrekun.rekado.services.utils.LoginUtils
 import com.pavelrekun.rekado.services.utils.MemoryUtils
 import com.pavelrekun.rekado.services.utils.PreferencesUtils
-import com.pavelrekun.rekado.services.utils.Utils
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class PayloadsViewModel : ViewModel() {
 
+    private val service = PayloadDownloadService.createService()
+
     val isProgressShowing: MutableLiveData<Boolean> = MutableLiveData()
 
-    val fetchSchemaResult = MutableLiveData<PayloadDownloadHelper.Result>()
-    val updatePayloadResult = MutableLiveData<PayloadDownloadHelper.Result>()
-    val downloadPayloadResult = MutableLiveData<PayloadDownloadHelper.Result>()
+    val fetchConfigResult = MutableLiveData<Result>()
+    val updatePayloadResult = MutableLiveData<Result>()
+    val downloadPayloadResult = MutableLiveData<Result>()
 
-    fun fetchExternalSchema() {
-        if (!Utils.isOnline()) {
-            fetchSchemaResult.value = PayloadDownloadHelper.Result.ERROR
-        } else {
-            viewModelScope.launch(Dispatchers.Main) {
-                val response = withContext(Dispatchers.IO) { PayloadDownloadHelper.fetchExternalSchema() }
+    fun fetchExternalConfig() {
+        val errorsHandler = CoroutineExceptionHandler { _, exception ->
+            fetchConfigResult.value = Result.ERROR
+            isProgressShowing.value = false
+        }
 
-                val body = response.body
-                if (response.isSuccessful && body != null) {
-                    val schema = body.byteStream().parseSchema()
-                    val currentSchema = PreferencesUtils.getCurrentSchema()
+        viewModelScope.launch(Dispatchers.Main + errorsHandler) {
+            val response = withContext(Dispatchers.IO) { service.fetchExternalConfig() }
 
-                    if (schema.timestamp > currentSchema.timestamp) {
-                        fetchSchemaResult.value = PayloadDownloadHelper.Result.SUCCESS.apply { this.schema = schema }
-                    }
+            val body = response.body()
+            if (response.isSuccessful && body != null) {
+                val config = body.byteStream().parseConfig()
+                val currentConfig = PreferencesUtils.getCurrentConfig()
 
-                } else {
-                    fetchSchemaResult.value = PayloadDownloadHelper.Result.ERROR
+                if (config.timestamp > currentConfig.timestamp) {
+                    fetchConfigResult.value = Result.SUCCESS.apply { this.config = config }
                 }
 
-                isProgressShowing.value = false
+            } else {
+                fetchConfigResult.value = Result.ERROR
             }
+
+            isProgressShowing.value = false
         }
     }
 
-    fun updatePayloads(updatedSchema: Schema) {
-        if (!Utils.isOnline()) {
-            updatePayloadResult.value = PayloadDownloadHelper.Result.ERROR
-        } else {
-            viewModelScope.launch(Dispatchers.Main) {
-                isProgressShowing.value = true
+    fun updatePayloads(updatedConfig: Config) {
+        val errorsHandler = CoroutineExceptionHandler { _, _ ->
+            updatePayloadResult.value = Result.ERROR
+            isProgressShowing.value = false
+        }
 
-                val currentSchema = PreferencesUtils.getCurrentSchema().payloads
+        viewModelScope.launch(Dispatchers.Main + errorsHandler) {
+            isProgressShowing.value = true
 
-                updatedSchema.payloads
-                        .filterIndexed { index, payload -> payload.version != currentSchema[index].version }
-                        .forEach {
-                            val response = withContext(Dispatchers.IO) { PayloadDownloadHelper.downloadPayload(it.downloadUrl) }
-                            val body = response.body
+            val currentConfig = PreferencesUtils.getCurrentConfig().payloads
 
-                            if (response.isSuccessful && body != null) {
-                                MemoryUtils.copyPayload(body.byteStream(), it.title)
-                            }
-                        }.apply {
-                            PreferencesUtils.saveSchema(updatedSchema)
+            updatedConfig.payloads
+                    .filterIndexed { index, payload -> payload.version != currentConfig[index].version }
+                    .forEach {
+                        val response = withContext(Dispatchers.IO) { service.downloadPayload(it.downloadUrl) }
+                        val body = response.body()
+
+                        if (response.isSuccessful && body != null) {
+                            MemoryUtils.copyPayload(body.byteStream(), it.title)
                         }
+                    }.apply {
+                        PreferencesUtils.saveConfig(updatedConfig)
+                    }
 
-                updatePayloadResult.value = PayloadDownloadHelper.Result.SUCCESS
-                isProgressShowing.value = false
-            }
+            updatePayloadResult.value = Result.SUCCESS
+            isProgressShowing.value = false
         }
     }
 
     fun downloadPayload(name: String, url: String) {
-        if (!Utils.isOnline()) {
-            updatePayloadResult.value = PayloadDownloadHelper.Result.ERROR
-        } else {
-            viewModelScope.launch(Dispatchers.Main) {
-                isProgressShowing.value = true
+        val errorsHandler = CoroutineExceptionHandler { _, _ ->
+            downloadPayloadResult.value = Result.ERROR
+            isProgressShowing.value = false
+        }
 
-                val finalName = if (name.endsWith(".bin")) name else "$name.bin"
+        viewModelScope.launch(Dispatchers.Main + errorsHandler) {
+            isProgressShowing.value = true
 
-                if (!url.contains("https") || !url.contains("http")) {
-                    downloadPayloadResult.value = PayloadDownloadHelper.Result.ERROR
-                }
+            val finalName = if (name.endsWith(".bin")) name else "$name.bin"
 
-                val response = withContext(Dispatchers.IO) { PayloadDownloadHelper.downloadPayload(url) }
-                val body = response.body
-                val contentType = body?.contentType()?.subtype
-
-                if (response.isSuccessful && body != null && contentType != null && Constants.Mimes.BINARY.contains(contentType)) {
-                    LoginUtils.info("Downloading payload: $finalName.")
-                    withContext(Dispatchers.IO) { MemoryUtils.copyPayload(body.byteStream(), finalName) }
-
-                    downloadPayloadResult.value = PayloadDownloadHelper.Result.SUCCESS
-                } else {
-                    downloadPayloadResult.value = PayloadDownloadHelper.Result.ERROR
-                }
-
-                isProgressShowing.value = false
+            if (!url.contains("https") || !url.contains("http")) {
+                downloadPayloadResult.value = Result.ERROR
             }
+
+            val response = withContext(Dispatchers.IO) { service.downloadPayload(url) }
+            val body = response.body()
+            val contentType = body?.contentType()?.subtype()
+
+            if (response.isSuccessful && body != null && contentType != null && Constants.Mimes.BINARY.contains(contentType)) {
+                LoginUtils.info("Downloading payload: $finalName.")
+                withContext(Dispatchers.IO) { MemoryUtils.copyPayload(body.byteStream(), finalName) }
+
+                downloadPayloadResult.value = Result.SUCCESS
+            } else {
+                downloadPayloadResult.value = Result.ERROR
+            }
+
+            isProgressShowing.value = false
         }
 
     }

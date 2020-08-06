@@ -7,12 +7,12 @@ import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
 import com.pavelrekun.rekado.RekadoApplication
-import com.pavelrekun.rekado.data.Schema
+import com.pavelrekun.rekado.data.Config
 import java.io.File
 import java.io.InputStream
 import java.io.InputStreamReader
 
-private val SCHEMA_TYPE = object : TypeToken<Schema>() {}.type
+private val CONFIG_TYPE = object : TypeToken<Config>() {}.type
 
 fun EditText.getString() = this.text.toString()
 
@@ -20,10 +20,6 @@ fun EditText.isEmpty() = this.text.isEmpty()
 
 fun InputStream.toFile(path: String) {
     File(path).outputStream().use { this.copyTo(it) }
-}
-
-fun String.extractName(): String {
-    return this.substringAfterLast("/")
 }
 
 fun Uri.extractFileName(): String? {
@@ -37,4 +33,4 @@ fun Uri.extractFileName(): String? {
     return null
 }
 
-fun InputStream.parseSchema(): Schema = GsonBuilder().create().fromJson(JsonReader(InputStreamReader(this)), SCHEMA_TYPE)
+fun InputStream.parseConfig(): Config = GsonBuilder().create().fromJson(JsonReader(InputStreamReader(this)), CONFIG_TYPE)

@@ -3,24 +3,23 @@ package com.pavelrekun.rekado.screens.settings_fragment
 import android.app.AlertDialog
 import android.os.Bundle
 import android.view.View
-import androidx.fragment.app.Fragment
 import androidx.preference.CheckBoxPreference
 import androidx.preference.ListPreference
 import androidx.preference.Preference
-import androidx.preference.PreferenceFragmentCompat
 import com.pavelrekun.penza.Penza
-import com.pavelrekun.penza.pickers.theme.ThemePickerFragment
 import com.pavelrekun.penza.services.helpers.SettingsDialogsHelper
 import com.pavelrekun.rekado.R
-import com.pavelrekun.rekado.base.BaseActivity
-import com.pavelrekun.rekado.services.utils.LoginUtils
+import com.pavelrekun.rekado.base.BasePreferencesFragment
 import com.pavelrekun.rekado.services.dialogs.DialogsShower
+import com.pavelrekun.rekado.services.extensions.openSettingsAppearanceThemesScreen
 import com.pavelrekun.rekado.services.payloads.PayloadHelper
+import com.pavelrekun.rekado.services.utils.LoginUtils
+import com.pavelrekun.rekado.services.utils.PreferencesUtils
 import com.pavelrekun.rekado.services.utils.Utils
+import de.halfbit.edgetoedge.Edge
+import de.halfbit.edgetoedge.edgeToEdge
 
-class SettingsFragment : PreferenceFragmentCompat() {
-
-    private lateinit var activity: BaseActivity
+class SettingsFragment : BasePreferencesFragment(R.xml.preferences, R.string.navigation_settings) {
 
     private lateinit var appearanceTheme: Preference
     private lateinit var appearanceAccentColor: Preference
@@ -30,95 +29,104 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private lateinit var autoInjectorEnable: CheckBoxPreference
     private lateinit var autoInjectorPayload: ListPreference
 
+    private lateinit var payloadsHidePreference: CheckBoxPreference
     private lateinit var payloadsResetPreference: Preference
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        activity.setTitle(R.string.navigation_settings)
-    }
-
-    override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        activity = getActivity() as BaseActivity
-        addPreferencesFromResource(R.xml.preferences)
 
         preparePreferences()
 
         initAppearanceCategory()
         initAutoInjectorCategory()
         initPayloadsCategory()
+        initEdgeToEdge()
     }
 
     private fun preparePreferences() {
-        payloadsResetPreference = findPreference("payloads_reset")!!
+        payloadsHidePreference = findPreference("payloads_hide")
+        payloadsResetPreference = findPreference("payloads_reset")
 
-        autoInjectorEnable = findPreference("auto_injector_enable")!!
-        autoInjectorPayload = findPreference("auto_injector_payload")!!
+        autoInjectorEnable = findPreference("auto_injector_enable")
+        autoInjectorPayload = findPreference("auto_injector_payload")
 
-        appearanceTheme = findPreference("appearance_theme")!!
-        appearanceAccentColor = findPreference("appearance_accent_color")!!
-        appearanceRandomize = findPreference("appearance_randomize")!!
-        appearanceReset = findPreference("appearance_reset")!!
+        appearanceTheme = findPreference("appearance_theme")
+        appearanceAccentColor = findPreference("appearance_accent_color")
+        appearanceRandomize = findPreference("appearance_randomize")
+        appearanceReset = findPreference("appearance_reset")
     }
 
     private fun initAppearanceCategory() {
-        val themePickerFragment = ThemePickerFragment().apply {
-            setClickListener { openRestartDialog() }
-            setControlClickListener { openRestartDialog() }
-        }
-
         appearanceTheme.setOnPreferenceClickListener {
-            openSettingsFragment(themePickerFragment)
+            requireBaseActivity().openSettingsAppearanceThemesScreen()
             true
         }
 
         appearanceAccentColor.setOnPreferenceChangeListener { _, _ ->
-            openRestartDialog()
+            DialogsShower.showSettingsRestartDialog(requireBaseActivity())
             true
         }
 
         appearanceRandomize.setOnPreferenceClickListener {
-            SettingsDialogsHelper.showSettingsRestartDialog(activity) {
+            SettingsDialogsHelper.showSettingsRestartDialog(requireBaseActivity()) {
                 Penza.randomizeTheme()
-                Utils.restartApplication()
+                Utils.restartApplication(requireBaseActivity())
             }
             true
         }
 
         appearanceReset.setOnPreferenceClickListener {
-            SettingsDialogsHelper.showSettingsRestartDialog(activity) {
+            SettingsDialogsHelper.showSettingsRestartDialog(requireBaseActivity()) {
                 Penza.reset()
-                Utils.restartApplication()
+                Utils.restartApplication(requireBaseActivity())
             }
             true
         }
     }
 
     private fun initAutoInjectorCategory() {
-        autoInjectorEnable.setTitle(if (autoInjectorEnable.isChecked) R.string.settings_auto_injector_status_title_enabled else R.string.settings_auto_injector_status_title_disabled)
+        if (!PayloadHelper.checkPayloadsExists()) {
+            autoInjectorEnable.isEnabled = false
+            autoInjectorEnable.isChecked = false
 
-        autoInjectorPayload.entryValues = PayloadHelper.getTitles().toTypedArray()
-        autoInjectorPayload.entries = PayloadHelper.getTitles().toTypedArray()
-        if (autoInjectorPayload.value == null && PayloadHelper.getTitles().isNotEmpty()) autoInjectorPayload.setValueIndex(0)
-        autoInjectorPayload.isEnabled = autoInjectorEnable.isChecked
+            autoInjectorPayload.isEnabled = false
+            autoInjectorPayload.value = null
+        } else {
+            autoInjectorEnable.isEnabled = true
+            autoInjectorPayload.isEnabled = true
 
-        autoInjectorEnable.setOnPreferenceChangeListener { _, newValue ->
-            autoInjectorPayload.isEnabled = newValue as Boolean
+            autoInjectorEnable.setTitle(if (autoInjectorEnable.isChecked) R.string.settings_auto_injector_status_title_enabled else R.string.settings_auto_injector_status_title_disabled)
 
-            if (newValue) {
-                LoginUtils.info("\"Auto injector\" enabled!")
-                autoInjectorEnable.setTitle(R.string.settings_auto_injector_status_title_enabled)
-            } else {
-                LoginUtils.info("\"Auto injector\" disabled!")
-                autoInjectorEnable.setTitle(R.string.settings_auto_injector_status_title_disabled)
+            autoInjectorPayload.entryValues = PayloadHelper.getTitles().toTypedArray()
+            autoInjectorPayload.entries = PayloadHelper.getTitles().toTypedArray()
+            if (autoInjectorPayload.value == null) autoInjectorPayload.setValueIndex(0)
+            autoInjectorPayload.isEnabled = autoInjectorEnable.isChecked
+
+            autoInjectorEnable.setOnPreferenceChangeListener { _, newValue ->
+                autoInjectorPayload.isEnabled = newValue as Boolean
+
+                if (newValue) {
+                    LoginUtils.info("\"Auto injector\" enabled!")
+                    autoInjectorEnable.setTitle(R.string.settings_auto_injector_status_title_enabled)
+                } else {
+                    LoginUtils.info("\"Auto injector\" disabled!")
+                    autoInjectorEnable.setTitle(R.string.settings_auto_injector_status_title_disabled)
+                }
+
+                true
             }
-
-            true
         }
     }
 
     private fun initPayloadsCategory() {
+        payloadsHidePreference.setOnPreferenceChangeListener { preference, newValue ->
+            PreferencesUtils.setHideBundledPayloadsEnabled(newValue as Boolean)
+            initAutoInjectorCategory()
+            true
+        }
+
         payloadsResetPreference.setOnPreferenceClickListener {
-            val dialog = DialogsShower.showPayloadsResetDialog(activity)
+            val dialog = DialogsShower.showPayloadsResetDialog(requireBaseActivity())
 
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
                 PayloadHelper.deletePayloads()
@@ -130,18 +138,10 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun openSettingsFragment(fragment: Fragment) {
-        activity.supportFragmentManager.apply {
-            beginTransaction()
-                    .replace(R.id.secondaryContainer, fragment, fragment::class.java.simpleName)
-                    .addToBackStack(null)
-                    .commit()
-        }
-    }
 
-    private fun openRestartDialog() {
-        SettingsDialogsHelper.showSettingsRestartDialog(activity) {
-            Utils.restartApplication()
+    private fun initEdgeToEdge() {
+        edgeToEdge {
+            listView.fit { Edge.Bottom }
         }
     }
 

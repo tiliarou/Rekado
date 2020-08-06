@@ -4,9 +4,13 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import androidx.navigation.ui.setupWithNavController
+import com.github.javiersantos.appupdater.AppUpdater
+import com.github.javiersantos.appupdater.enums.Display
+import com.github.javiersantos.appupdater.enums.UpdateFrom
 import com.pavelrekun.rekado.R
 import com.pavelrekun.rekado.base.BaseActivity
 import com.pavelrekun.rekado.databinding.ActivityContainerPrimaryBinding
+import com.pavelrekun.rekado.services.Constants
 import com.pavelrekun.rekado.services.dialogs.DialogsShower
 import com.pavelrekun.rekado.services.extensions.openAboutScreen
 import com.pavelrekun.rekado.services.extensions.openSettingsScreen
@@ -21,10 +25,11 @@ class PrimaryContainerActivity : BaseActivity() {
 
         binding = ActivityContainerPrimaryBinding.inflate(layoutInflater).apply { setContentView(this.root) }
 
-        prepareNavigation(R.id.primaryContainer)
+        prepareNavigation(R.id.primaryLayoutContainer)
 
         initToolbar()
         initBottomNavigation()
+        initUpdatesChecker()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -35,12 +40,12 @@ class PrimaryContainerActivity : BaseActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.navigation_about -> {
-                controller.openAboutScreen()
+                openAboutScreen()
                 true
             }
 
             R.id.navigation_settings -> {
-                controller.openSettingsScreen()
+                openSettingsScreen()
                 true
             }
 
@@ -50,7 +55,7 @@ class PrimaryContainerActivity : BaseActivity() {
             }
 
             R.id.navigation_translators -> {
-                controller.openTranslatorsScreen()
+                openTranslatorsScreen()
                 true
             }
 
@@ -59,10 +64,18 @@ class PrimaryContainerActivity : BaseActivity() {
     }
 
     private fun initToolbar() {
-        setSupportActionBar(binding.primaryToolbar)
+        setSupportActionBar(binding.primaryLayoutToolbar)
     }
 
     private fun initBottomNavigation() {
-        binding.primaryBottomNavigation.setupWithNavController(controller)
+        binding.primaryLayoutNavigation.setupWithNavController(controller)
+    }
+
+    private fun initUpdatesChecker() {
+        AppUpdater(this)
+                .setUpdateFrom(UpdateFrom.JSON)
+                .setUpdateJSON(Constants.UPDATE_CHANGELOG_LINK)
+                .setDisplay(Display.NOTIFICATION)
+                .start()
     }
 }

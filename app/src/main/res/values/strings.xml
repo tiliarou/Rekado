@@ -15,15 +15,20 @@
     <!-- Strings for About -->
     <string name="about_category_description">Description</string>
     <string name="about_category_developer">Developer</string>
-    <string name="about_information_description">Rekado is a toolkit application for your Nintendo Switch that includes payloads injection, checking consoles for vulnerability by serial number and even more features are coming soon.</string>
-    <string name="about_developer_personal_site">Personal site</string>
-    <string name="about_developer_github" translatable="false">GitHub</string>
-    <string name="about_developer_twitter" translatable="false">Twitter</string>
+    <string name="about_information_description">Rekado is a toolkit app for your Nintendo Switch that includes payloads injection and checking consoles for vulnerability by serial number</string>
+    <string name="about_developer_portfolio_title">Portfolio</string>
+    <string name="about_developer_portfolio_summary">All information about the developer and the blog with news</string>
+    <string name="about_developer_instagram_title" translatable="false">Instagram</string>
+    <string name="about_developer_instagram_summary">Hobby profile with drone photo</string>
+    <string name="about_developer_github_title" translatable="false">GitHub</string>
+    <string name="about_developer_github_summary">List of the open-source apps</string>
+    <string name="about_developer_twitter_title" translatable="false">Twitter</string>
+    <string name="about_developer_twitter_summary">Personal micro-blog</string>
 
     <!-- Strings for Payloads -->
     <string name="payloads_download_status_empty">The name or URL should not be empty!</string>
     <string name="payloads_download_status_success">The payload successfully downloaded!</string>
-    <string name="payloads_download_status_error">Error occurred during downloading payload. Check you internet connection or typos in URL.</string>
+    <string name="payloads_download_status_error">An error occurred during downloading payload. Check your internet connection or typos in the URL.</string>
 
     <!-- Strings for Tools -->
     <string name="tools_serial_checker_title">Serial checker</string>
@@ -33,14 +38,14 @@
     <string name="instructions_category_cable">Cable</string>
     <string name="instructions_category_cable_description">First, you need to find a cable to connect your device to the Nintendo Switch. For proper work, this should be a cable that is designed for data transmission, not just for charging.\n\nIt is advisable to use an A-to-C cable and a USB OTG adapter.</string>
     <string name="instructions_category_payload">Payload</string>
-    <string name="instructions_category_payload_description">In the \u0022Payloads\u0022 category, click the \u0022+\u0022 button to select preloaded payload from your device\'s storage. Or simply transfer your payload to the Rekado folder (/sdcard/Android/data/com.pavelrekun.rekado/files/).\n\nOr you can use the pre-installed payloads (SX Loader/Hekate/Fusee Primary).</string>
+    <string name="instructions_category_payload_description">You can add your payload from the device’s memory (click the \u0022+\u0022 button), download it via a direct link (click the button with the \u0022cloud\u0022 icon) on the \u0022Payloads\u0022 screen or simply move it to the Rekado folder (/sdcard/Android/data/com.pavelrekun.rekado/files/).\n\nYou can also use one of the bundled payloads (SX Loader/Hekate/Fusee Primary/ReiNX).</string>
     <string name="instructions_category_rcm" translatable="false">RCM</string>
     <string name="instructions_category_rcm_description">Enter your Nintendo Switch into RCM mode in any convenient way. \n\nYour Nintendo Switch will power on by itself when plugged in, be sure to hold \u0022VOLUME +\u0022.</string>
     <string name="instructions_category_final">Final</string>
     <string name="instructions_category_final_description">Connect the device to the Nintendo Switch and allow permission for the USB access, if necessary. Wait unit payloads chooser dialog will be opened and select which one you want to load.</string>
 
     <!-- Strings for Donate -->
-    <string name="donate_description">You can support the application developer by buying him a cup of coffee. If you want, of course.</string>
+    <string name="donate_description">You can support the app developer by buying him a cup of coffee. If you want, of course.</string>
 
     <!-- Strings for Settings -->
     <string name="settings_category_auto_injector">Auto-injector</string>
@@ -48,11 +53,13 @@
     <string name="settings_auto_injector_status_title_enabled">Disable \u0022Auto-injector\u0022</string>
     <string name="settings_auto_injector_payload_title">Payload</string>
     <string name="settings_category_payloads">Payloads</string>
+    <string name="settings_payloads_hide_title">Hide bundled payloads</string>
+    <string name="settings_payloads_hide_summary">Hide all bundled payloads (SX Loader/Hekate/Fusee Primary/ReiNX)</string>
     <string name="settings_payloads_reset_title">Clear</string>
-    <string name="settings_payloads_reset_summary">Remove all added payloads except pre-installed (SX Loader/Hekate/Fusee Primary)</string>
+    <string name="settings_payloads_reset_summary">Remove all added payloads except bundled (SX Loader/Hekate/Fusee Primary/ReiNX)</string>
     <string name="settings_category_appearance">Appearance</string>
     <string name="settings_appearance_theme_title">Theme</string>
-    <string name="settings_appearance_theme_summary">Main theme of the application</string>
+    <string name="settings_appearance_theme_summary">Main theme of the app</string>
     <string name="settings_appearance_accent_color_title">Accent color</string>
     <string name="settings_appearance_accent_color_summary">Color used to tint UI elements</string>
     <string name="settings_appearance_randomize_title">Randomize appearance</string>
@@ -79,7 +86,7 @@
     <string name="settings_picker_theme_themes_colorful_electricity">Electricity</string>
     <string name="settings_picker_theme_themes_colorful_steel">Steel</string>
     <string name="settings_utils_restart_dialog_title">Settings changed</string>
-    <string name="settings_utils_restart_dialog_message">Settings have been changed. Please, restart application for the change to take effect. \n\nRestart the app now?</string>
+    <string name="settings_utils_restart_dialog_message">Settings have been changed. Please, restart the app for the change to take effect.\n\nRestart the app now?</string>
     <string name="settings_utils_restart_dialog_action_restart">Restart</string>
     <string name="settings_utils_restart_dialog_action_cancel">Cancel</string>
 
@@ -93,8 +100,10 @@
     <string name="dialog_payload_download_url" translatable="false">URL</string>
     <string name="dialog_payload_download_button">Download</string>
     <string name="dialog_payload_update_title">Payloads updates</string>
-    <string name="dialog_payload_update_message">There is an update for some pre-installed payloads. Recommended upgrade.</string>
-    <string name="dialog_button_update">Update</string>
+    <string name="dialog_payload_update_message">There is an update for some bundled payloads. The update is recommended.</string>
+    <string name="dialog_loader_no_payloads_title">No payloads</string>
+    <string name="dialog_loader_no_payloads_description">It seems you did not add external payloads and hid the bundled ones. The injection is not possible.\n\nAdd your payloads or disable the hiding of bundled payloads in the "Settings" and try again.</string>
+    <string name="dialog_button_update">Update payloads</string>
     <string name="dialog_button_positive" translatable="false">OK</string>
     <string name="dialog_button_negative">Close</string>
 
@@ -118,6 +127,12 @@
     <string name="serial_checker_status_empty">Serial number can\'t be empty!</string>
     <string name="serial_checker_status_too_long">Maximum length of the serial number is 14 characters!</string>
     <string name="serial_checker_status_scan_failed">Failed to scan barcode!</string>
+
+    <!-- Strings for Translators -->
+    <string name="translators_english" translatable="false">Pavel Rekun (Menos)</string>
+    <string name="translators_russian" translatable="false">Pavel Rekun (Menos)</string>
+    <string name="translators_ukrainian" translatable="false">Pavel Rekun (Menos)</string>
+    <string name="translators_spanish" translatable="false">tiliarou, marioandraderomero, elric200x, zjairo45</string>
 
     <!-- Strings for Helper -->
     <string name="helper_error_adding_payload">Selected payload can not be added!</string>

@@ -20,6 +20,7 @@ class LogsFragment : BaseFragment(R.layout.fragment_logs) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initScrollingBehaviour(binding.logsActionsList)
         initWithTitle(R.string.navigation_logs)
         initList()
         initClickListeners()
@@ -39,7 +40,7 @@ class LogsFragment : BaseFragment(R.layout.fragment_logs) {
 
         binding.logsActionsList.apply {
             setHasFixedSize(true)
-            layoutManager = LinearLayoutManager(getBaseActivity())
+            layoutManager = LinearLayoutManager(requireBaseActivity())
             adapter = this@LogsFragment.adapter
 
             addOnScrollListener(object : RecyclerView.OnScrollListener() {

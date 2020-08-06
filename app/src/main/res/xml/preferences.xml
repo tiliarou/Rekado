@@ -43,6 +43,12 @@
 
     <PreferenceCategory android:title="@string/settings_category_payloads" />
 
+    <CheckBoxPreference
+        android:icon="@drawable/ic_settings_payloads_hide"
+        android:key="payloads_hide"
+        android:summary="@string/settings_payloads_hide_summary"
+        android:title="@string/settings_payloads_hide_title" />
+
     <Preference
         android:icon="@drawable/ic_settings_payloads_clear"
         android:key="payloads_reset"

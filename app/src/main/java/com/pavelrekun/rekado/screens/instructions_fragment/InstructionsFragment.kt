@@ -16,12 +16,13 @@ class InstructionsFragment : BaseFragment(R.layout.fragment_instructions) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        initScrollingBehaviour(binding.instructionsLayoutScroll)
         initWithTitle(R.string.navigation_instructions)
         initClickListeners()
     }
 
     private fun initClickListeners() {
-        binding.instructionsRCMHelp.setOnClickListener { Utils.openLink(getBaseActivity(), Constants.HELP_RCM) }
+        binding.instructionsRCMHelp.setOnClickListener { Utils.openLink(requireBaseActivity(), Constants.HELP_RCM) }
     }
 
 }

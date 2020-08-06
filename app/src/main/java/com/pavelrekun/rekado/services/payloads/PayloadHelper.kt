@@ -6,9 +6,17 @@ import com.pavelrekun.rekado.services.utils.PreferencesUtils
 
 object PayloadHelper {
 
-    val BUNDLED_PAYLOADS = listOf("hekate.bin", "sx_loader.bin", "fusee_primary.bin")
+    val BUNDLED_PAYLOADS = listOf("hekate.bin", "sx_loader.bin", "fusee_primary.bin", "reinx.bin")
 
-    fun getAllPayloads() = (PreferencesUtils.getCurrentSchema().payloads + getExternalPayloads()).toMutableList()
+    fun getAllPayloads(): MutableList<Payload> {
+        return if (PreferencesUtils.checkHideBundledPayloadsEnabled()) {
+            getExternalPayloads().toMutableList()
+        } else {
+            (PreferencesUtils.getCurrentConfig().payloads + getExternalPayloads()).toMutableList()
+        }
+    }
+
+    fun checkPayloadsExists() = getAllPayloads().isNotEmpty()
 
     fun getTitles() = getAllPayloads().map { it.title }
 
